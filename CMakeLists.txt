@@ -1,7 +1,3 @@
-cmake_minimum_required(VERSION 3.16)
-
-project(rls_fpga LANGUAGES CXX)
-
 add_library(rls_fpga
     axi_dsp.cpp
     dma_channel.cpp
