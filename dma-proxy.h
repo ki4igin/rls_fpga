@@ -23,6 +23,8 @@
  * otherwise there may be issues when using cached memory.
  */
 #include "rls.hpp"
+#ifndef DMA_PROXY_HPP
+#define DMA_PROXY_HPP
 
 #define BUFFER_SIZE                           \
 	(sizeof(uint32_t) *                       \
@@ -30,8 +32,10 @@
 	 rls::N_PACKS_IN_TX_BUF)
 #define BUFFER_COUNT 32 /* driver only */
 
-#define TX_BUFFER_COUNT 1  /* app only, must be <= to the number in the driver */
-#define RX_BUFFER_COUNT 8  /* app only, must be <= to the number in the driver */
+#define TX_BUFFER_COUNT 2 /* app only, must be <= to the number in the driver  \
+                           */
+#define RX_BUFFER_COUNT                                                        \
+  16 /* app only, must be <= to the number in the driver */
 #define BUFFER_INCREMENT 1 /* normally 1, but skipping buffers (2) defeats prefetching in the CPU */
 
 #define FINISH_XFER _IOW('a', 'a', int32_t *)
@@ -61,3 +65,4 @@ struct channel_contagious_buffer
 	struct channel_buffer buffers[BUFFER_COUNT];
 	struct channel_buffer_state states[BUFFER_COUNT];
 };
+#endif // DMA_PROXY_HPP

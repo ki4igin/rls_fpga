@@ -57,9 +57,9 @@ int fpga_dma::init() {
 
 		tx_cfg.devnode   = cfg.tx_devnodes[ch];
 		tx_cfg.buf_size  = cfg.tx_buf_size;
-		tx_cfg.buf_count = 1;
+                tx_cfg.buf_count = TX_BUFFER_COUNT;
 
-		if (tx_channels[ch].init(tx_cfg) != 0) {
+                if (tx_channels[ch].init(tx_cfg) != 0) {
 			fprintf(stderr, "Failed to initialize TX DMA channel %d\n", ch);
 			return -1;
 		}
@@ -106,16 +106,17 @@ int fpga_dma::send(const void * data[NUM_TX_CHANNELS]) {
 
 int fpga_dma::send() {
 	const int rx_buf_id = static_cast<int>(submitted % rx_buf_count);
+        const int tx_buf_id = static_cast<int>(submitted % TX_BUFFER_COUNT);
 
-	rx_channel.start_transfer(rx_buf_id);
+        rx_channel.start_transfer(rx_buf_id);
 
-	for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
-		tx_channels[ch].start_transfer(0);
-	}
+        for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
+          tx_channels[ch].start_transfer(tx_buf_id);
+        }
 
-	int result = 0;
+        int result = 0;
 
-	for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
+        for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
 		int ret = tx_channels[ch].wait_for_transfer(0);
 
 		if (ret != 0) {
@@ -156,26 +157,6 @@ int fpga_dma::receive() {
 	++completed;
 
 	return 0;
-}
-
-void * fpga_dma::get_rx_buffer() {
-	if (last_rx_buf_id < 0) {
-		return nullptr;
-	}
-
-	return rx_channel.get_buffer(last_rx_buf_id);
-}
-
-void * fpga_dma::get_tx_buffer(int ch) {
-	return tx_channels[ch].get_buffer(0);
-}
-
-size_t fpga_dma::get_submitted() const {
-	return submitted;
-}
-
-size_t fpga_dma::get_completed() const {
-	return completed;
 }
 
 void fpga_dma::cleanup() {

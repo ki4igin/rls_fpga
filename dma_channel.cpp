@@ -69,10 +69,6 @@ int dma_channel::wait_for_transfer(int buf_id) {
 	return 0;
 }
 
-void * dma_channel::get_buffer(int buf_id) {
-	return ch.buf_ptr->buffers[buf_id].buffer;
-}
-
 void dma_channel::cleanup() {
 	if (ch.buf_ptr != nullptr) {
 		if (munmap(ch.buf_ptr, sizeof(channel_contagious_buffer)) == -1) {
