@@ -117,12 +117,13 @@ int fpga_dma::send() {
         int result = 0;
 
         for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
-		int ret = tx_channels[ch].wait_for_transfer(0);
+          int ret = tx_channels[ch].wait_for_transfer(tx_buf_id);
 
-		if (ret != 0) {
-			fprintf(stderr, "TX ERROR ch=%d transaction=%zu ret=%d\n", ch, submitted, ret);
+          if (ret != 0) {
+            fprintf(stderr, "TX ERROR ch=%d transaction=%zu ret=%d\n", ch,
+                    submitted, ret);
 
-			result = ret;
+            result = ret;
 		}
 	}
 
