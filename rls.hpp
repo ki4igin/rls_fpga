@@ -64,7 +64,7 @@ struct work_packet {
 
 #pragma pack(pop)
 
-uint32_t get_rx_words_per_buf(uint32_t tp);
+uint32_t get_rx_words_per_buf(uint32_t tp, uint32_t u220_hdr_on = 0);
 void print_hdr(const void * data);
 void print_work(const void * data);
 

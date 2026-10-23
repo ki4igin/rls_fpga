@@ -5,10 +5,10 @@
 
 namespace rls {
 
-uint32_t get_rx_words_per_buf(uint32_t test_point) {
+uint32_t get_rx_words_per_buf(uint32_t test_point, uint32_t u220_hdr_on) {
 	switch (test_point) {
 	case TP_WORK: return sizeof(work_posthdr) / sizeof(uint32_t) + HDR_SIZE;
-	case TP_BYPASS: return (N_SAMPS_IN_PACK + HDR_SIZE) * N_PACKS_IN_TX_BUF;
+	case TP_BYPASS: return (N_SAMPS_IN_PACK + HDR_SIZE + u220_hdr_on * U220_HDR_SIZE) * N_PACKS_IN_TX_BUF;
 	case TP_CUT:
 	case TP_FAPCH:
 	case TP_LOU: return (164 + HDR_SIZE) * N_PACKS_IN_TX_BUF;
