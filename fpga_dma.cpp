@@ -16,7 +16,7 @@
 
 constexpr size_t RX_PIPELINE_DEPTH = 8;
 
-int fpga_dma::init() {
+int fpga_dma::init(int u220_hdr_on) {
 	config cfg;
 
 	cfg.rx_devnode     = RX_DEV;
@@ -30,7 +30,7 @@ int fpga_dma::init() {
 	cfg.tx_devnodes[6] = TX_DEV_CH6;
 	cfg.tx_devnodes[7] = TX_DEV_CH7;
 
-	cfg.tx_buf_size    = rls::TX_BUF_SIZE;
+	cfg.tx_buf_size    = rls::TX_BUF_SIZE + u220_hdr_on * (sizeof(uint32_t) * rls::U220_HDR_SIZE * rls::N_PACKS_IN_TX_BUF);
 	cfg.rx_buf_size    = BUFFER_SIZE;
 	cfg.rx_buf_count   = RX_BUFFER_COUNT;
  

@@ -10,7 +10,7 @@ public:
   static constexpr int NUM_TX_CHANNELS = 8;
   static constexpr int NUM_RX_CHANNELS = 1;
 
-  int init();
+  int init(int u220_hdr_on = 0);
   bool can_send() const;
   int send(const void *data[NUM_TX_CHANNELS]);
   int send();

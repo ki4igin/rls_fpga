@@ -28,7 +28,7 @@
 
 #define BUFFER_SIZE                           \
 	(sizeof(uint32_t) *                       \
-	 (rls::N_SAMPS_IN_PACK + rls::HDR_SIZE) * \
+	 (rls::N_SAMPS_IN_PACK + rls::HDR_SIZE + rls::U220_HDR_SIZE) * \
 	 rls::N_PACKS_IN_TX_BUF)
 #define BUFFER_COUNT 32 /* driver only */
 
