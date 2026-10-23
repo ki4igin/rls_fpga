@@ -48,6 +48,7 @@ float axi_dsp_get_azimuth_angle();
 uint32_t axi_dsp_get_apply();
 float axi_dsp_get_compensation_ref();
 uint32_t axi_dsp_get_channel_mask();
+uint32_t axi_dsp_get_expect_u220_del();
 
 void axi_dsp_set_test_point(uint32_t tp);
 void axi_dsp_set_channel(uint32_t channel);
@@ -70,6 +71,7 @@ void axi_dsp_set_azimuth_angle(float angle);
 void axi_dsp_set_compensation_ref(float ref);
 void axi_dsp_set_compensation_ref(uint32_t ref);
 void axi_dsp_set_channel_mask(uint32_t channel_mask);
+void axi_dsp_set_expect_u220_del(uint32_t expect_del);
 
 void axi_dsp_kill();
 void axi_dsp_apply();

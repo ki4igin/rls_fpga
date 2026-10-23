@@ -251,7 +251,17 @@ uint32_t axi_dsp_get_compensation_mode() {
 }
 
 cmplx_f64 axi_dsp_get_manual_compensation(uint32_t channel) {
-	return read_cmplx_num(CSR_MANUAL_COMPENSATION_0_ADDR + (channel * 0x04));
+  cmplx_f64 num_f64;
+
+  uint32_t re =
+      read_u32(CSR_MANUAL_COMPENSATION_0_RE_ADDR + (2 * channel * 0x04));
+  uint32_t im =
+      read_u32(CSR_MANUAL_COMPENSATION_0_IM_ADDR + (2 * channel * 0x04));
+
+  num_f64.real = fix_to_float(re, MANUAL_COMPENSATION_ORD);
+  num_f64.imag = fix_to_float(im, MANUAL_COMPENSATION_ORD);
+
+  return num_f64;
 }
 
 cmplx_f64 axi_dsp_get_diagram_0(uint32_t channel) {
@@ -348,13 +358,19 @@ uint32_t axi_dsp_get_channel_mask() {
 	return (raw & CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_MASK) >> CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_LSB;
 }
 
+uint32_t axi_dsp_get_expect_u220_del() { 
+	return read_u32(CSR_SETTINGS_ADDR); 
+}
 
 void axi_dsp_set_compensation_mode(uint32_t compensation_mode) {
 	axi_write(compensation_mode, CSR_COMPENSATION_MODE_ADDR);
 }
 
 void axi_dsp_set_manual_compensation(cmplx_f64 manual_comp, uint32_t channel) {
-	write_cmplx_num(manual_comp, CSR_MANUAL_COMPENSATION_0_ADDR + (channel * 4));
+  uint32_t re = float_to_fix(manual_comp.real, MANUAL_COMPENSATION_ORD);
+  uint32_t im = float_to_fix(manual_comp.imag, MANUAL_COMPENSATION_ORD);
+  axi_write(re, CSR_MANUAL_COMPENSATION_0_RE_ADDR + (2 * channel * 0x04));
+  axi_write(im, CSR_MANUAL_COMPENSATION_0_IM_ADDR + (2 * channel * 0x04));
 }
 
 void axi_dsp_set_diagram_0(cmplx_f64 diagram, uint32_t channel) {
@@ -445,6 +461,10 @@ void axi_dsp_set_compensation_ref(uint32_t ref) {
 
 void axi_dsp_set_channel_mask(uint32_t channel_mask) {
 	axi_write(channel_mask & CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_MASK, CSR_CHANNEL_MASK_ADDR);
+}
+
+void axi_dsp_set_expect_u220_del(uint32_t expect_del) {
+  axi_write(expect_del & CSR_SETTINGS_EXPECT_DELIMITER_MASK, CSR_SETTINGS_ADDR);
 }
 
 void axi_dsp_kill() {
