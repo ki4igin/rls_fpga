@@ -27,6 +27,11 @@ public:
 
   void *get_tx_buffer(int ch) { return tx_channels[ch].get_buffer(0); }
 
+  void *get_current_tx_buffer(int ch) {
+    return tx_channels[ch].get_buffer(
+        static_cast<int>(submitted % TX_BUFFER_COUNT));
+  }
+
   void get_all_tx_buffers(int ch, void **buffer_array) {
     tx_channels[ch].get_all_buffers(buffer_array);
   }
