@@ -68,6 +68,13 @@ struct formular {
 	uint32_t rank_out;
 };
 
+struct work_packet {
+	struct header hdr;
+	struct noise_formular nf;
+	struct work_posthdr posthdr;
+	struct formular formulars[];
+};
+
 #pragma pack(pop)
 
 uint32_t get_rx_words_per_buf(uint32_t tp, uint32_t u220_hdr_on = 0);
