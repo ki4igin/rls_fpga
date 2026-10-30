@@ -7,7 +7,7 @@ namespace rls {
 
 uint32_t get_rx_words_per_buf(uint32_t test_point, uint32_t u220_hdr_on) {
 	switch (test_point) {
-	case TP_WORK: return sizeof(work_posthdr) / sizeof(uint32_t) + HDR_SIZE;
+	case TP_WORK: return (sizeof(noise_formular) + sizeof(work_posthdr)) / sizeof(uint32_t) + HDR_SIZE;
 	case TP_BYPASS: return (N_SAMPS_IN_PACK + HDR_SIZE + u220_hdr_on * U220_HDR_SIZE) * N_PACKS_IN_TX_BUF;
 	case TP_CUT:
 	case TP_FAPCH:
@@ -30,11 +30,11 @@ uint32_t get_rx_words_per_buf(uint32_t test_point, uint32_t u220_hdr_on) {
 void print_work(const void * data) {
 	const auto * work = static_cast<const work_posthdr *>(data);
 	printf("Packet Number\t\t\t\t%u\n", work->packet_number);
-	printf("Number of detections\t\t\t%u\n", work->n_work_packets);
+	printf("Number of detections\t\t\t%u\n", work->n_formulars);
 
-	const auto * packets = reinterpret_cast<const work_packet *>(work + 1);
+	const auto * packets = reinterpret_cast<const formular *>(work + 1);
 
-	for (uint32_t i = 0; i < work->n_work_packets; ++i) {
+	for (uint32_t i = 0; i < work->n_formulars; ++i) {
 		const auto & packet = packets[i];
 		printf("\n");
 		printf("Work packet\t\t\t\t%u\n", i + 1);
@@ -61,7 +61,8 @@ void print_hdr(const void * data) {
 	printf("Test point\t\t\t\t%u\n", static_cast<unsigned int>(hdr->tp));
 
 	if (hdr->tp == TP_WORK) {
-		print_work(static_cast<const uint32_t *>(data) + HDR_SIZE);
+		constexpr auto noise_words = sizeof(noise_formular) / sizeof(uint32_t);
+		print_work(static_cast<const uint32_t *>(data) + HDR_SIZE + noise_words);
 	}
 }
 

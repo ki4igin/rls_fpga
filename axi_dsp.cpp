@@ -223,9 +223,9 @@ void axi_dsp_configure() {
 	axi_dsp_set_compensation_mode(0);
 	axi_dsp_set_compensation_ref((uint32_t)1575);
 	axi_dsp_set_apu_rank(9, 15);
-	axi_dsp_set_detector_level(36, 0);
-	axi_dsp_set_detector_level(0, 1);
-	axi_dsp_set_channel_mask(0xFF);
+        axi_dsp_set_cfar_level(36);
+        axi_dsp_set_median_detector_coef(0);
+        axi_dsp_set_channel_mask(0xFF);
 	axi_dsp_apply();
 }
 
@@ -332,9 +332,14 @@ csr_apu_rank_t axi_dsp_get_apu_rank() {
 	return apu_rank;
 }
 
-double axi_dsp_get_detector_level(uint32_t num) {
-	uint32_t raw =  read_u32(CSR_OUTPUT_SOURCE_ADDR + (num * 4));
-	return fix_to_double(raw, 24);
+double axi_dsp_get_cfar_level() {
+  uint32_t raw = read_u32(CSR_CFAR_LEVEL_ADDR);
+  return fix_to_double(raw, 24);
+}
+
+double axi_dsp_get_median_detector_coef() {
+  uint32_t raw = read_u32(CSR_MEDIAN_DETECTOR_COEF_ADDR);
+  return fix_to_double(raw, 24);
 }
 
 float axi_dsp_get_azimuth_angle() {
@@ -443,8 +448,12 @@ void axi_dsp_set_apu_rank(uint32_t rank, uint32_t window) {
 	axi_write(apu_rank_un.raw, CSR_APU_RANK_ADDR);
 }
 
-void axi_dsp_set_detector_level(double level, uint32_t num) {
-	axi_write(double_to_fix(level, 24), CSR_DETECTOR_LEVEL_0_ADDR + (num * 4));
+void axi_dsp_set_cfar_level(double level) {
+  axi_write(double_to_fix(level, 24), CSR_CFAR_LEVEL_ADDR);
+}
+
+void axi_dsp_set_median_detector_coef(double coef) {
+  axi_write(double_to_fix(coef, 24), CSR_MEDIAN_DETECTOR_COEF_ADDR);
 }
 
 void axi_dsp_set_azimuth_angle(float angle) {

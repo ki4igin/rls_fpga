@@ -46,10 +46,16 @@ struct header {
 
 struct work_posthdr {
 	uint32_t packet_number;
-	uint32_t n_work_packets;
+	uint32_t n_formulars;
 };
 
-struct work_packet {
+struct noise_formular {
+	uint32_t packet_number;
+	uint32_t noise_fap[8];
+	uint32_t noise_lou[8];
+};
+
+struct formular {
 	uint32_t main_amplitude;
 	uint32_t neighbor_amplitude;
 
