@@ -477,6 +477,25 @@ void axi_dsp_set_expect_u220_del(uint32_t expect_del) {
   axi_write(expect_del & CSR_SETTINGS_EXPECT_DELIMITER_MASK, CSR_SETTINGS_ADDR);
 }
 
+uint32_t axi_dsp_get_frequency_selection(uint32_t reg_index, uint32_t * value) {
+	if (reg_index >= 16 || value == nullptr) {
+		return FD_ERR_READ;
+	}
+	constexpr uint32_t reg_stride = CSR_FREQUENCY_SELECTION_1_ADDR - CSR_FREQUENCY_SELECTION_0_ADDR;
+	return axi_read(value, CSR_FREQUENCY_SELECTION_0_ADDR + reg_index * reg_stride);
+}
+
+void axi_dsp_set_frequency_selection(uint32_t mask, uint32_t reg_index) {
+	constexpr uint32_t reg_stride = CSR_FREQUENCY_SELECTION_1_ADDR - CSR_FREQUENCY_SELECTION_0_ADDR;
+	constexpr uint32_t reg_count =
+	    (CSR_FREQUENCY_SELECTION_15_ADDR - CSR_FREQUENCY_SELECTION_0_ADDR) / reg_stride + 1;
+	if (reg_index >= reg_count) {
+		fprintf(stderr, "Frequency selection register index must be in range 0-15\n");
+		return;
+	}
+	axi_write(mask, CSR_FREQUENCY_SELECTION_0_ADDR + reg_index * reg_stride);
+}
+
 void axi_dsp_kill() {
 	axi_write(CSR_RESET_RESET, CSR_RESET_ADDR);
 	// axi_write(1, CSR_RESET_ADDR);
