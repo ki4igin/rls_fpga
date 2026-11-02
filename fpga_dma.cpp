@@ -1,18 +1,19 @@
 #include "fpga_dma.hpp"
+
 #include "rls.hpp"
 
 #include <cstring>
 #include <stdio.h>
 
-#define RX_DEV            "/dev/dma_proxy_rx"
-#define TX_DEV_CH0        "/dev/dma_proxy_tx_ch0"
-#define TX_DEV_CH1        "/dev/dma_proxy_tx_ch1"
-#define TX_DEV_CH2        "/dev/dma_proxy_tx_ch2"
-#define TX_DEV_CH3        "/dev/dma_proxy_tx_ch3"
-#define TX_DEV_CH4        "/dev/dma_proxy_tx_ch4"
-#define TX_DEV_CH5        "/dev/dma_proxy_tx_ch5"
-#define TX_DEV_CH6        "/dev/dma_proxy_tx_ch6"
-#define TX_DEV_CH7        "/dev/dma_proxy_tx_ch7"
+#define RX_DEV     "/dev/dma_proxy_rx"
+#define TX_DEV_CH0 "/dev/dma_proxy_tx_ch0"
+#define TX_DEV_CH1 "/dev/dma_proxy_tx_ch1"
+#define TX_DEV_CH2 "/dev/dma_proxy_tx_ch2"
+#define TX_DEV_CH3 "/dev/dma_proxy_tx_ch3"
+#define TX_DEV_CH4 "/dev/dma_proxy_tx_ch4"
+#define TX_DEV_CH5 "/dev/dma_proxy_tx_ch5"
+#define TX_DEV_CH6 "/dev/dma_proxy_tx_ch6"
+#define TX_DEV_CH7 "/dev/dma_proxy_tx_ch7"
 
 constexpr size_t RX_PIPELINE_DEPTH = 8;
 
@@ -33,13 +34,13 @@ int fpga_dma::init(int u220_hdr_on) {
 	cfg.tx_buf_size    = rls::TX_BUF_SIZE + u220_hdr_on * (sizeof(uint32_t) * rls::U220_HDR_SIZE * rls::N_PACKS_IN_TX_BUF);
 	cfg.rx_buf_size    = BUFFER_SIZE;
 	cfg.rx_buf_count   = RX_BUFFER_COUNT;
- 
-	tx_buf_size            = cfg.tx_buf_size;
-	rx_buf_size            = cfg.rx_buf_size;
-	rx_buf_count           = cfg.rx_buf_count;
-	submitted              = 0;
-	completed              = 0;
-	last_rx_buf_id         = -1;
+
+	tx_buf_size        = cfg.tx_buf_size;
+	rx_buf_size        = cfg.rx_buf_size;
+	rx_buf_count       = cfg.rx_buf_count;
+	submitted          = 0;
+	completed          = 0;
+	last_rx_buf_id     = -1;
 
 	dma_channel::ch_config rx_cfg;
 
@@ -57,9 +58,9 @@ int fpga_dma::init(int u220_hdr_on) {
 
 		tx_cfg.devnode   = cfg.tx_devnodes[ch];
 		tx_cfg.buf_size  = cfg.tx_buf_size;
-                tx_cfg.buf_count = TX_BUFFER_COUNT;
+		tx_cfg.buf_count = TX_BUFFER_COUNT;
 
-                if (tx_channels[ch].init(tx_cfg) != 0) {
+		if (tx_channels[ch].init(tx_cfg) != 0) {
 			fprintf(stderr, "Failed to initialize TX DMA channel %d\n", ch);
 			return -1;
 		}
@@ -106,24 +107,23 @@ int fpga_dma::send(const void * data[NUM_TX_CHANNELS]) {
 
 int fpga_dma::send() {
 	const int rx_buf_id = static_cast<int>(submitted % rx_buf_count);
-        const int tx_buf_id = static_cast<int>(submitted % TX_BUFFER_COUNT);
+	const int tx_buf_id = static_cast<int>(submitted % TX_BUFFER_COUNT);
 
-        rx_channel.start_transfer(rx_buf_id);
+	rx_channel.start_transfer(rx_buf_id);
 
-        for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
-          tx_channels[ch].start_transfer(tx_buf_id);
-        }
+	for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
+		tx_channels[ch].start_transfer(tx_buf_id);
+	}
 
-        int result = 0;
+	int result = 0;
 
-        for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
-          int ret = tx_channels[ch].wait_for_transfer(tx_buf_id);
+	for (int ch = 0; ch < NUM_TX_CHANNELS; ++ch) {
+		int ret = tx_channels[ch].wait_for_transfer(tx_buf_id);
 
-          if (ret != 0) {
-            fprintf(stderr, "TX ERROR ch=%d transaction=%zu ret=%d\n", ch,
-                    submitted, ret);
+		if (ret != 0) {
+			fprintf(stderr, "TX ERROR ch=%d transaction=%zu ret=%d\n", ch, submitted, ret);
 
-            result = ret;
+			result = ret;
 		}
 	}
 

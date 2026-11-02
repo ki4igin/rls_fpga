@@ -29,7 +29,7 @@ enum tp {
 	TP_FAPCH_COEFFS = 12,
 	TP_WEIGHT_OUT   = 13,
 	TP_MTI          = 14,
-	TP_SDR			= 99,
+	TP_SDR          = 99,
 };
 
 #pragma pack(push, 1)
