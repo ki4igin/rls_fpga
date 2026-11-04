@@ -136,11 +136,8 @@ int fpga_dma::receive() {
 	if (completed >= submitted) {
 		return -1;
 	}
-
 	const int rx_buf_id = static_cast<int>(completed % rx_buf_count);
-
 	int ret             = rx_channel.wait_for_transfer(rx_buf_id);
-
 	if (ret != 0) {
 		fprintf(stderr,
 		        "RX ERROR transaction=%zu buf=%d "
@@ -152,9 +149,23 @@ int fpga_dma::receive() {
 
 		return ret;
 	}
+	const auto timestamp = std::chrono::steady_clock::now();
+
+	{
+		std::lock_guard<std::mutex> lock(rx.mutex);
+		if (rx.write_seq - rx.read_seq >= rx.buffers.size()) {
+			++rx.read_seq;
+		}
+		rx.buffers[rx.write_seq % rx.buffers.size()] = {
+			rx_buf_id,
+			static_cast<const uint32_t *>(rx_channel.get_buffer(rx_buf_id)),
+			timestamp,
+		};
+
+		++rx.write_seq;
+	}
 
 	last_rx_buf_id = rx_buf_id;
-
 	++completed;
 
 	return 0;
@@ -166,4 +177,29 @@ void fpga_dma::cleanup() {
 	}
 
 	rx_channel.cleanup();
+}
+
+bool fpga_dma::try_get_rx_buffer(rx_buffer_info & info) {
+	std::lock_guard<std::mutex> lock(rx.mutex);
+
+	if (rx.read_seq == rx.write_seq) {
+		return false;
+	}
+
+	info = rx.buffers[rx.read_seq % rx.buffers.size()];
+	++rx.read_seq;
+
+	return true;
+}
+
+fpga_dma::rx_buffer_info fpga_dma::get_rx_buffer() {
+	std::lock_guard<std::mutex> lock(rx.mutex);
+	rx_buffer_info info = rx.buffers[rx.read_seq % rx.buffers.size()];
+	++rx.read_seq;
+	return info;
+}
+
+size_t fpga_dma::get_rx_ready_count() const {
+	std::lock_guard<std::mutex> lock(rx.mutex);
+	return rx.write_seq - rx.read_seq;
 }
