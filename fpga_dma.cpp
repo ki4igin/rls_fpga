@@ -15,6 +15,8 @@
 #define TX_DEV_CH6 "/dev/dma_proxy_tx_ch6"
 #define TX_DEV_CH7 "/dev/dma_proxy_tx_ch7"
 
+static_assert(RX_BUFFER_COUNT > 0 && (RX_BUFFER_COUNT & (RX_BUFFER_COUNT - 1)) == 0, "RX_BUFFER_COUNT must be a power of two");
+
 constexpr size_t RX_PIPELINE_DEPTH = 8;
 
 int fpga_dma::init(int u220_hdr_on) {
@@ -64,6 +66,12 @@ int fpga_dma::init(int u220_hdr_on) {
 			fprintf(stderr, "Failed to initialize TX DMA channel %d\n", ch);
 			return -1;
 		}
+	}
+
+	{
+		std::lock_guard<std::mutex> lock(rx.mutex);
+		rx.write_seq = 0;
+		rx.read_seq  = 0;
 	}
 
 	return 0;
@@ -156,7 +164,7 @@ int fpga_dma::receive() {
 		if (rx.write_seq - rx.read_seq >= rx.buffers.size()) {
 			++rx.read_seq;
 		}
-		rx.buffers[rx.write_seq % rx.buffers.size()] = {
+		rx.buffers[rx.write_seq & (rx.buffers.size() - 1)] = {
 			rx_buf_id,
 			static_cast<const uint32_t *>(rx_channel.get_buffer(rx_buf_id)),
 			timestamp,
@@ -186,7 +194,7 @@ bool fpga_dma::try_get_rx_buffer(rx_buffer_info & info) {
 		return false;
 	}
 
-	info = rx.buffers[rx.read_seq % rx.buffers.size()];
+	info = rx.buffers[rx.read_seq & (rx.buffers.size() - 1)];
 	++rx.read_seq;
 
 	return true;
@@ -194,7 +202,7 @@ bool fpga_dma::try_get_rx_buffer(rx_buffer_info & info) {
 
 fpga_dma::rx_buffer_info fpga_dma::get_rx_buffer() {
 	std::lock_guard<std::mutex> lock(rx.mutex);
-	rx_buffer_info info = rx.buffers[rx.read_seq % rx.buffers.size()];
+	rx_buffer_info info = rx.buffers[rx.read_seq & (rx.buffers.size() - 1)];
 	++rx.read_seq;
 	return info;
 }
