@@ -226,6 +226,17 @@ void axi_dsp_configure() {
 	axi_dsp_set_cfar_level(0);
 	axi_dsp_set_median_detector_coef(36);
 	axi_dsp_set_channel_mask(0xFF);
+
+	for (uint32_t reg_index = 0; reg_index < 16; ++reg_index) {
+		uint32_t mask = 0;
+		for (uint32_t bit = 0; bit < 32; ++bit) {
+			const uint32_t k = reg_index * 32 + bit;
+			if ((k >= 3 && k <= 75) || (k >= 437 && k <= 509)) {
+				mask |= uint32_t{1} << bit;
+			}
+		}
+		axi_dsp_set_frequency_selection(mask, reg_index);
+	}
 	axi_dsp_apply();
 }
 
