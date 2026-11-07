@@ -223,7 +223,7 @@ void axi_dsp_configure() {
 	axi_dsp_set_compensation_mode(0);
 	axi_dsp_set_compensation_ref((uint32_t)1575);
 	axi_dsp_set_apu_rank(9, 15);
-	axi_dsp_set_cfar_level(0);
+	axi_dsp_set_cfar_level(1);
 	axi_dsp_set_median_detector_coef(36);
 	axi_dsp_set_channel_mask(0xFF);
 	axi_dsp_apply();
@@ -446,8 +446,8 @@ void axi_dsp_set_apu_rank(uint32_t rank, uint32_t window) {
 	axi_write(apu_rank_un.raw, CSR_APU_RANK_ADDR);
 }
 
-void axi_dsp_set_cfar_level(double level) {
-	axi_write(double_to_fix(level, 24), CSR_CFAR_LEVEL_ADDR);
+void axi_dsp_set_cfar_level(uint32_t level) {
+	axi_write(level, CSR_CFAR_LEVEL_ADDR);
 }
 
 void axi_dsp_set_median_detector_coef(double coef) {
