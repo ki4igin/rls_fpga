@@ -162,6 +162,10 @@ int fpga_dma::receive() {
 	{
 		std::lock_guard<std::mutex> lock(rx.mutex);
 		if (rx.write_seq - rx.read_seq >= rx.buffers.size()) {
+			fprintf(stderr,
+			        "RX overflow: write_seq=%u read_seq=%u\n" ,
+			        rx.write_seq,
+			        rx.read_seq);
 			++rx.read_seq;
 		}
 		rx.buffers[rx.write_seq & (rx.buffers.size() - 1)] = {

@@ -52,8 +52,8 @@ private:
 
 	struct rx_queue {
 		std::array<rx_buffer_info, RX_BUFFER_COUNT> buffers;
-		size_t write_seq = 0;
-		size_t read_seq  = 0;
+		uint32_t write_seq = 0;
+		uint32_t read_seq  = 0;
 		mutable std::mutex mutex;
 	};
 
