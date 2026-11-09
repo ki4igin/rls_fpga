@@ -29,7 +29,7 @@ uint32_t get_rx_words_per_buf(uint32_t test_point, uint32_t u220_hdr_on) {
 
 void print_work(const void * data) {
 	const auto * work = static_cast<const work_posthdr *>(data);
-	printf("Packet Number\t\t\t\t%u\n", work->packet_number);
+	printf("Packet Number\t\t\t\t0x%X\n", work->packet_number);
 	printf("Number of detections\t\t\t%u\n", work->n_formulars);
 
 	const auto * packets = reinterpret_cast<const formular *>(work + 1);
@@ -51,19 +51,35 @@ void print_work(const void * data) {
 
 
 void print_hdr(const void * data) {
-	const auto * hdr = static_cast<const header *>(data);
+	const auto * work_pac = static_cast<const struct work_packet *>(data);
+	const auto * hdr      = &work_pac->hdr;
 
 	printf("Delimiter\t\t\t\t0x%X_%X\n", hdr->del_high, hdr->del_low);
-	printf("Packet Number\t\t\t\t%u\n", hdr->packet_number);
+	printf("Packet Number\t\t\t\t0x%X\n", hdr->packet_number);
 	printf("Timestamp\t\t\t\t%" PRIu64 "\n", hdr->timestamp);
 	printf("Channel\t\t\t\t\t%u\n", static_cast<unsigned int>(hdr->channel));
 	printf("Range gate\t\t\t\t%u\n", static_cast<unsigned int>(hdr->range));
 	printf("Test point\t\t\t\t%u\n", static_cast<unsigned int>(hdr->tp));
 
 	if (hdr->tp == TP_WORK) {
-		constexpr auto noise_words = sizeof(noise_formular) / sizeof(uint32_t);
-		print_work(static_cast<const uint32_t *>(data) + HDR_SIZE + noise_words);
+		print_noise(&work_pac->nf);
+		print_work(&work_pac->posthdr);
 	}
+}
+
+void print_noise(const void * data) {
+	const auto * noise = static_cast<const noise_formular *>(data);
+
+	printf("\nNoise formular\n");
+	printf("Packet Number\t\t\t\t0x%X\n", noise->packet_number);
+	for (uint32_t i = 0; i < 8; ++i) {
+		printf("Noise FAP [%u]\t\t\t\t%u\n", i, noise->noise_fap[i]);
+	}
+	for (uint32_t i = 0; i < 8; ++i) {
+		printf("Noise LOU [%u]\t\t\t\t%u\n", i, noise->noise_lou[i]);
+	}
+
+	printf("\n");
 }
 
 } // namespace rls
