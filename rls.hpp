@@ -56,6 +56,23 @@ struct noise_formular {
 	uint32_t noise_lou[8];
 };
 
+// Signed Q14 coefficients, each occupying a 32-bit DMA word.
+struct compens_channel {
+	int32_t re: 24;
+	uint32_t  : 8;
+	int32_t im: 24;
+	uint32_t  : 8;
+};
+
+struct compens_formular {
+	uint32_t packet_number;
+	struct compens_channel channels[NUM_CHANNELS];
+};
+
+static_assert(sizeof(compens_channel) == 8, "Compensation channel must occupy two DMA words");
+static_assert(sizeof(compens_formular) == 68, "Compensation formular must occupy 17 DMA words");
+static_assert(offsetof(compens_formular, channels) == 4, "Coefficients must follow the packet number");
+
 struct formular {
 	uint32_t main_amplitude;
 	uint32_t neighbor_amplitude;
@@ -69,18 +86,32 @@ struct formular {
 	uint32_t rank_out;
 };
 
+struct range_packet {
+	uint32_t n_ranges;
+	uint32_t ranges[];
+};
+
+static_assert(sizeof(range_packet) == sizeof(uint32_t), "Range header must occupy one DMA word");
+
 struct work_packet {
 	struct header hdr;
 	struct noise_formular nf;
+	struct compens_formular cf;
 	struct work_posthdr posthdr;
 	struct formular formulars[];
 };
 
 #pragma pack(pop)
 
+// The range packet follows the variable number of detection formulars.
+inline const range_packet * get_range_packet(const work_packet * work) {
+	return reinterpret_cast<const range_packet *>(work->formulars + work->posthdr.n_formulars);
+}
+
 uint32_t get_rx_words_per_buf(uint32_t tp, uint32_t u220_hdr_on = 0);
 void print_hdr(const void * data);
 void print_work(const void * data);
 void print_noise(const void * data);
+void print_ranges(const void * data);
 
 } // namespace rls

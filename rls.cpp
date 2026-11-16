@@ -7,7 +7,7 @@ namespace rls {
 
 uint32_t get_rx_words_per_buf(uint32_t test_point, uint32_t u220_hdr_on) {
 	switch (test_point) {
-	case TP_WORK: return (sizeof(noise_formular) + sizeof(work_posthdr)) / sizeof(uint32_t) + HDR_SIZE;
+	case TP_WORK: return (sizeof(noise_formular) + sizeof(compens_formular) + sizeof(work_posthdr) + sizeof(range_packet)) / sizeof(uint32_t) + HDR_SIZE;
 	case TP_BYPASS: return (N_SAMPS_IN_PACK + HDR_SIZE + u220_hdr_on * U220_HDR_SIZE) * N_PACKS_IN_TX_BUF;
 	case TP_CUT:
 	case TP_FAPCH:
@@ -64,6 +64,7 @@ void print_hdr(const void * data) {
 	if (hdr->tp == TP_WORK) {
 		print_noise(&work_pac->nf);
 		print_work(&work_pac->posthdr);
+		print_ranges(get_range_packet(work_pac));
 	}
 }
 
@@ -79,6 +80,17 @@ void print_noise(const void * data) {
 		printf("Noise LOU [%u]\t\t\t\t%u\n", i, noise->noise_lou[i]);
 	}
 
+	printf("\n");
+}
+
+void print_ranges(const void * data) {
+	const auto * packet = static_cast<const range_packet *>(data);
+
+	printf("\nRange packet\n");
+	printf("Number of ranges\t\t\t%u\n", packet->n_ranges);
+	for (uint32_t i = 0; i < packet->n_ranges; ++i) {
+		printf("Range [%u]\t\t\t\t%u\n", i, packet->ranges[i]);
+	}
 	printf("\n");
 }
 
