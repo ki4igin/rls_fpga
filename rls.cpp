@@ -22,6 +22,7 @@ uint32_t get_rx_words_per_buf(uint32_t test_point, uint32_t u220_hdr_on) {
 	case TP_WEIGHT_OUT: return 512 + HDR_SIZE;
 	case TP_FIND: return 141 * 5 + HDR_SIZE;
 	case TP_FAPCH_COEFFS: return (8 + HDR_SIZE) * N_PACKS_IN_TX_BUF;
+	case TP_PU_IN: return 141 * 2 + HDR_SIZE;
 	default: return 0;
 	}
 }
