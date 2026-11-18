@@ -3,6 +3,7 @@
 #include "dma_channel.hpp"
 
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
@@ -34,6 +35,8 @@ public:
 
 	size_t get_submitted() const { return submitted; }
 	size_t get_completed() const { return completed; }
+	size_t get_rx_processed() const { return rx_processed.load(); }
+	void mark_rx_processed() { rx_processed.fetch_add(1); }
 
 	bool try_get_rx_buffer(rx_buffer_info & info);
 	size_t get_rx_ready_count() const;
@@ -62,12 +65,13 @@ private:
 	dma_channel rx_channel;
 	dma_channel tx_channels[NUM_TX_CHANNELS];
 
-	int tx_buf_size    = 0;
-	int rx_buf_size    = 0;
-	int rx_buf_count   = 0;
+	int tx_buf_size  = 0;
+	int rx_buf_size  = 0;
+	int rx_buf_count = 0;
 
-	size_t submitted   = 0;
-	size_t completed   = 0;
+	size_t submitted = 0;
+	size_t completed = 0;
+	std::atomic_size_t rx_processed{0};
 
 	int last_rx_buf_id = -1;
 };

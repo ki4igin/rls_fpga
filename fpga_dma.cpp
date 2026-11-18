@@ -42,7 +42,8 @@ int fpga_dma::init(int u220_hdr_on) {
 	rx_buf_count       = cfg.rx_buf_count;
 	submitted          = 0;
 	completed          = 0;
-	last_rx_buf_id     = -1;
+	rx_processed.store(0);
+	last_rx_buf_id = -1;
 
 	dma_channel::ch_config rx_cfg;
 
@@ -78,7 +79,7 @@ int fpga_dma::init(int u220_hdr_on) {
 }
 
 bool fpga_dma::can_send() const {
-	return submitted - completed < static_cast<size_t>(rx_buf_count);
+	return submitted - completed < RX_PIPELINE_DEPTH;
 }
 
 int fpga_dma::send(const void * data[NUM_TX_CHANNELS]) {
@@ -162,10 +163,7 @@ int fpga_dma::receive() {
 	{
 		std::lock_guard<std::mutex> lock(rx.mutex);
 		if (rx.write_seq - rx.read_seq >= rx.buffers.size()) {
-			fprintf(stderr,
-			        "RX overflow: write_seq=%u read_seq=%u\n" ,
-			        rx.write_seq,
-			        rx.read_seq);
+			fprintf(stderr, "RX overflow: write_seq=%u read_seq=%u\n", rx.write_seq, rx.read_seq);
 			++rx.read_seq;
 		}
 		rx.buffers[rx.write_seq & (rx.buffers.size() - 1)] = {
