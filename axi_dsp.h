@@ -21,6 +21,13 @@ typedef struct {
 	float imag;
 } cmplx_f64;
 
+typedef struct {
+	uint8_t band_stop_1_low_edge_channel;
+	uint8_t band_stop_1_high_edge_channel;
+	uint8_t band_stop_2_low_edge_channel;
+	uint8_t band_stop_2_high_edge_channel;
+} axi_dsp_band_stop_edges_t;
+
 uint32_t axi_dsp_init();
 void axi_dsp_deinit();
 void axi_dsp_configure();
@@ -40,6 +47,7 @@ cmplx_f64 axi_dsp_get_diagram_5(uint32_t channel);
 cmplx_f64 axi_dsp_get_diagram_6(uint32_t channel);
 cmplx_f64 axi_dsp_get_diagram_7(uint32_t channel);
 csr_motion_selector_t axi_dsp_get_motion_selector();
+axi_dsp_band_stop_edges_t axi_dsp_get_band_stop_edges(uint32_t channel);
 float axi_dsp_get_diagram_angle(uint32_t channel);
 csr_output_source_t axi_dsp_get_output_source();
 csr_apu_rank_t axi_dsp_get_apu_rank();
@@ -48,9 +56,10 @@ double axi_dsp_get_median_detector_coef();
 float axi_dsp_get_azimuth_angle();
 uint32_t axi_dsp_get_apply();
 float axi_dsp_get_compensation_ref();
-uint32_t axi_dsp_get_channel_mask();
+csr_channel_mask_t axi_dsp_get_channel_mask();
 uint32_t axi_dsp_get_expect_u220_del();
 uint32_t axi_dsp_get_frequency_selection(uint32_t reg_index, uint32_t * value);
+csr_status_t axi_dsp_get_status();
 
 void axi_dsp_set_test_point(uint32_t tp);
 void axi_dsp_set_channel(uint32_t channel);
@@ -64,7 +73,8 @@ void axi_dsp_set_diagram_4(cmplx_f64 diagram, uint32_t channel);
 void axi_dsp_set_diagram_5(cmplx_f64 diagram, uint32_t channel);
 void axi_dsp_set_diagram_6(cmplx_f64 diagram, uint32_t channel);
 void axi_dsp_set_diagram_7(cmplx_f64 diagram, uint32_t channel);
-void axi_dsp_set_motion_selector(uint32_t filter, uint32_t onoff);
+void axi_dsp_set_motion_selector(uint32_t band_stop_1_switch, uint32_t band_stop_2_switch, uint32_t master_switch);
+void axi_dsp_set_band_stop_edges(uint32_t channel, axi_dsp_band_stop_edges_t edges);
 void axi_dsp_set_diagram_angle(float angle, uint32_t channel);
 void axi_dsp_set_output_source(uint32_t src, uint32_t src_channel, uint32_t range_gate);
 void axi_dsp_set_apu_rank(uint32_t rank, uint32_t window);
@@ -73,7 +83,7 @@ void axi_dsp_set_median_detector_coef(double coef);
 void axi_dsp_set_azimuth_angle(float angle);
 void axi_dsp_set_compensation_ref(float ref);
 void axi_dsp_set_compensation_ref(uint32_t ref);
-void axi_dsp_set_channel_mask(uint32_t channel_mask);
+void axi_dsp_set_channel_mask(uint32_t channel_mask, uint32_t malfunction_mask);
 void axi_dsp_set_expect_u220_del(uint32_t expect_del);
 void axi_dsp_set_frequency_selection(uint32_t mask, uint32_t reg_index);
 

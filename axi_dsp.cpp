@@ -117,7 +117,7 @@ void axi_dsp_configure() {
 	printf("\nIP Version: %u.%u\n\n", ip_ver.MAJ_VER, ip_ver.MIN_VER);
 
 	axi_dsp_kill();
-	axi_dsp_set_motion_selector(1, 1);
+	axi_dsp_set_motion_selector(0, 0, 0);
 
 	cmplx_f64 manual_comp       = {.real = 1, .imag = 0};
 
@@ -225,7 +225,7 @@ void axi_dsp_configure() {
 	axi_dsp_set_apu_rank(9, 15);
 	axi_dsp_set_cfar_level(1);
 	axi_dsp_set_median_detector_coef(36);
-	axi_dsp_set_channel_mask(0xFF);
+	axi_dsp_set_channel_mask(0xFF, 0xFF);
 
 	for (uint32_t reg_index = 0; reg_index < 16; ++reg_index) {
 		uint32_t mask = 0;
@@ -306,12 +306,30 @@ cmplx_f64 axi_dsp_get_diagram_7(uint32_t channel) {
 }
 
 csr_motion_selector_t axi_dsp_get_motion_selector() {
-	uint32_t raw;
-	csr_motion_selector_t motion_selector;
-	axi_read(&raw, CSR_MOTION_SELECTOR_ADDR);
-	motion_selector.FILTER = ((raw & CSR_MOTION_SELECTOR_FILTER_MASK) >> CSR_MOTION_SELECTOR_FILTER_LSB);
-	motion_selector.ONOFF  = ((raw & CSR_MOTION_SELECTOR_ONOFF_MASK) >> CSR_MOTION_SELECTOR_ONOFF_LSB);
-	return motion_selector;
+	uint32_t raw = read_u32(CSR_MOTION_SELECTOR_ADDR);
+	csr_motion_selector_t result{};
+	result.BAND_STOP_1_SWITCH = (raw & CSR_MOTION_SELECTOR_BAND_STOP_1_SWITCH_MASK) >> CSR_MOTION_SELECTOR_BAND_STOP_1_SWITCH_LSB;
+	result.BAND_STOP_2_SWITCH = (raw & CSR_MOTION_SELECTOR_BAND_STOP_2_SWITCH_MASK) >> CSR_MOTION_SELECTOR_BAND_STOP_2_SWITCH_LSB;
+	result.MASTER_SWITCH      = (raw & CSR_MOTION_SELECTOR_MASTER_SWITCH_MASK) >> CSR_MOTION_SELECTOR_MASTER_SWITCH_LSB;
+	return result;
+}
+
+axi_dsp_band_stop_edges_t axi_dsp_get_band_stop_edges(uint32_t channel) {
+	axi_dsp_band_stop_edges_t result{};
+
+	if (channel >= 8) {
+		fprintf(stderr, "Invalid band stop channel: %u\n", channel);
+		return result;
+	}
+
+	uint32_t addr                        = CSR_BAND_STOP_EDGES_0_ADDR + channel * 4;
+	uint32_t raw                         = read_u32(addr);
+	result.band_stop_1_low_edge_channel  = raw & 0xFF;
+	result.band_stop_1_high_edge_channel = (raw >> 8) & 0xFF;
+	result.band_stop_2_low_edge_channel  = (raw >> 16) & 0xFF;
+	result.band_stop_2_high_edge_channel = (raw >> 24) & 0xFF;
+
+	return result;
 }
 
 float axi_dsp_get_diagram_angle(uint32_t channel) {
@@ -319,15 +337,12 @@ float axi_dsp_get_diagram_angle(uint32_t channel) {
 }
 
 csr_output_source_t axi_dsp_get_output_source() {
-	uint32_t raw;
-	csr_output_source_t src;
-
-	axi_read(&raw, CSR_OUTPUT_SOURCE_ADDR);
-	src.SOURCE         = (raw & CSR_OUTPUT_SOURCE_SOURCE_MASK) >> CSR_OUTPUT_SOURCE_SOURCE_LSB;
-	src.SOURCE_CHANNEL = (raw & CSR_OUTPUT_SOURCE_SOURCE_CHANNEL_MASK) >> CSR_OUTPUT_SOURCE_SOURCE_CHANNEL_LSB;
-	src.RANGE_GATE     = (raw & CSR_OUTPUT_SOURCE_RANGE_GATE_MASK) >> CSR_OUTPUT_SOURCE_RANGE_GATE_LSB;
-
-	return src;
+	uint32_t raw = read_u32(CSR_OUTPUT_SOURCE_ADDR);
+	union {
+		csr_output_source_t src;
+		uint32_t raw;
+	} source_un = {.raw = raw};
+	return source_un.src;
 }
 
 csr_apu_rank_t axi_dsp_get_apu_rank() {
@@ -368,9 +383,13 @@ uint32_t axi_dsp_get_apply() {
 	return read_u32(CSR_APPLY_ADDR);
 }
 
-uint32_t axi_dsp_get_channel_mask() {
+csr_channel_mask_t axi_dsp_get_channel_mask() {
 	uint32_t raw = read_u32(CSR_CHANNEL_MASK_ADDR);
-	return (raw & CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_MASK) >> CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_LSB;
+	csr_channel_mask_t result{};
+	result.CHANNEL_MASK_ENABLE = (raw & CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_MASK) >> CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_LSB;
+	result.CHANNEL_MASK_MALFUNCTION =
+		(raw & CSR_CHANNEL_MASK_CHANNEL_MASK_MALFUNCTION_MASK) >> CSR_CHANNEL_MASK_CHANNEL_MASK_MALFUNCTION_LSB;
+	return result;
 }
 
 uint32_t axi_dsp_get_expect_u220_del() {
@@ -420,15 +439,27 @@ void axi_dsp_set_diagram_7(cmplx_f64 diagram, uint32_t channel) {
 	write_cmplx_num(diagram, CSR_DIAGRAM_7_0_ADDR + (channel * 4));
 }
 
-void axi_dsp_set_motion_selector(uint32_t filter, uint32_t onoff) {
-	union {
-		csr_motion_selector_t motion_selector;
-		uint32_t raw;
-	} motion_sel_un = {
-		.motion_selector{.FILTER = filter, .ONOFF = onoff}
-    };
+void axi_dsp_set_motion_selector(uint32_t band_stop_1_switch, uint32_t band_stop_2_switch, uint32_t master_switch) {
+	uint32_t raw = 0;
+	raw |= (band_stop_1_switch & 0xFF);
+	raw |= (band_stop_2_switch & 0xFF) << 8;
+	raw |= (master_switch & 0x01) << 16;
+	axi_write(raw, CSR_MOTION_SELECTOR_ADDR);
+}
 
-	axi_write(motion_sel_un.raw, CSR_MOTION_SELECTOR_ADDR);
+void axi_dsp_set_band_stop_edges(uint32_t channel, axi_dsp_band_stop_edges_t edges) {
+	if (channel >= 8) {
+		fprintf(stderr, "Invalid band stop channel: %u\n", channel);
+		return;
+	}
+
+	uint32_t raw = 0;
+	raw |= (uint32_t(edges.band_stop_1_low_edge_channel) & 0xFF);
+	raw |= (uint32_t(edges.band_stop_1_high_edge_channel) & 0xFF) << 8;
+	raw |= (uint32_t(edges.band_stop_2_low_edge_channel) & 0xFF) << 16;
+	raw |= (uint32_t(edges.band_stop_2_high_edge_channel) & 0xFF) << 24;
+	uint32_t addr = CSR_BAND_STOP_EDGES_0_ADDR + channel * 4;
+	axi_write(raw, addr);
 }
 
 void axi_dsp_set_diagram_angle(float angle, uint32_t channel) {
@@ -478,12 +509,22 @@ void axi_dsp_set_compensation_ref(uint32_t ref) {
 	axi_write(ref, CSR_COMPENSATION_REFERENCE_ADDR);
 }
 
-void axi_dsp_set_channel_mask(uint32_t channel_mask) {
-	axi_write(channel_mask & CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_MASK, CSR_CHANNEL_MASK_ADDR);
+void axi_dsp_set_channel_mask(uint32_t channel_mask, uint32_t malfunction_mask) {
+	uint32_t raw = 0;
+	raw |= (channel_mask << CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_LSB) & CSR_CHANNEL_MASK_CHANNEL_MASK_ENABLE_MASK;
+	raw |= (malfunction_mask << CSR_CHANNEL_MASK_CHANNEL_MASK_MALFUNCTION_LSB) & CSR_CHANNEL_MASK_CHANNEL_MASK_MALFUNCTION_MASK;
+	axi_write(raw, CSR_CHANNEL_MASK_ADDR);
 }
 
 void axi_dsp_set_expect_u220_del(uint32_t expect_del) {
 	axi_write(expect_del & CSR_SETTINGS_EXPECT_DELIMITER_MASK, CSR_SETTINGS_ADDR);
+}
+
+csr_status_t axi_dsp_get_status() {
+	uint32_t raw = read_u32(CSR_STATUS_ADDR);
+	csr_status_t status{};
+	status.DDR_STORAGE_SLOW = (raw & CSR_STATUS_DDR_STORAGE_SLOW_MASK) >> CSR_STATUS_DDR_STORAGE_SLOW_LSB;
+	return status;
 }
 
 uint32_t axi_dsp_get_frequency_selection(uint32_t reg_index, uint32_t * value) {
