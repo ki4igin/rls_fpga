@@ -1707,10 +1707,11 @@ typedef struct {
 #define CSR_OUTPUT_SOURCE_ADDR 0x180
 #define CSR_OUTPUT_SOURCE_RESET 0x0
 typedef struct {
-    uint32_t SOURCE        : 16;
-	uint32_t SOURCE_CHANNEL: 3;
-	uint32_t RANGE_GATE    : 8;
-	uint32_t PADDING       : 5;
+    uint32_t SOURCE         : 15;
+    uint32_t SOURCE_RESET   : 1;
+    uint32_t SOURCE_CHANNEL : 3;
+    uint32_t RANGE_GATE     : 8;
+    uint32_t PADDING        : 5;
 } csr_output_source_t;
 
 // output_source.source - Source for output data

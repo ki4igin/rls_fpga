@@ -76,7 +76,7 @@ void axi_dsp_set_diagram_7(cmplx_f64 diagram, uint32_t channel);
 void axi_dsp_set_motion_selector(uint32_t band_stop_1_switch, uint32_t band_stop_2_switch, uint32_t master_switch);
 void axi_dsp_set_band_stop_edges(uint32_t channel, axi_dsp_band_stop_edges_t edges);
 void axi_dsp_set_diagram_angle(float angle, uint32_t channel);
-void axi_dsp_set_output_source(uint32_t src, uint32_t src_channel, uint32_t range_gate);
+void axi_dsp_set_output_source(uint32_t src, uint32_t source_reset, uint32_t src_channel, uint32_t range_gate);
 void axi_dsp_set_apu_rank(uint32_t rank, uint32_t window);
 void axi_dsp_set_cfar_level(uint32_t level);
 void axi_dsp_set_median_detector_coef(double coef);

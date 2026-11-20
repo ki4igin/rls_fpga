@@ -86,7 +86,7 @@ static uint32_t read_u32(uint32_t addr) {
 }
 
 uint32_t axi_dsp_init() {
-	printf("Debug: Trying to open /dev/rls_mini_pl\n");
+	// printf("Debug: Trying to open /dev/rls_mini_pl\n");
 
 	fd = open("/dev/rls_mini_pl", O_RDWR);
 	if (fd < 0) {
@@ -104,7 +104,7 @@ uint32_t axi_dsp_init() {
 		return FD_ERR_NONE;
 	}
 
-	printf("Debug: Opened successfully, fd=%d\n", fd);
+	// printf("Debug: Opened successfully, fd=%d\n", fd);
 	return FD_ERR_NONE;
 }
 
@@ -114,7 +114,7 @@ void axi_dsp_deinit() {
 
 void axi_dsp_configure() {
 	auto ip_ver = axi_dsp_get_ip_ver();
-	printf("\nIP Version: %u.%u\n\n", ip_ver.MAJ_VER, ip_ver.MIN_VER);
+	printf("\nAXU DSP Version: %u.%u\n\n", ip_ver.MAJ_VER, ip_ver.MIN_VER);
 
 	axi_dsp_kill();
 	axi_dsp_set_motion_selector(0, 0, 0);
@@ -225,7 +225,7 @@ void axi_dsp_configure() {
 	axi_dsp_set_apu_rank(9, 15);
 	axi_dsp_set_cfar_level(1);
 	axi_dsp_set_median_detector_coef(36);
-	axi_dsp_set_channel_mask(0xFF, 0xFF);
+	axi_dsp_set_channel_mask(0xFF, 0x00);
 
 	for (uint32_t reg_index = 0; reg_index < 16; ++reg_index) {
 		uint32_t mask = 0;
@@ -466,14 +466,13 @@ void axi_dsp_set_diagram_angle(float angle, uint32_t channel) {
 	write_angle(angle, CSR_DIAGRAM_ANGLE_0_ADDR + (channel * 4));
 }
 
-void axi_dsp_set_output_source(uint32_t src, uint32_t src_channel, uint32_t range_gate) {
+void axi_dsp_set_output_source(uint32_t src, uint32_t source_reset, uint32_t src_channel, uint32_t range_gate) {
 	union {
 		csr_output_source_t src;
 		uint32_t raw;
 	} source_un = {
-		.src{.SOURCE = src, .SOURCE_CHANNEL = src_channel, .RANGE_GATE = range_gate}
+		.src{.SOURCE = src, .SOURCE_RESET = source_reset, .SOURCE_CHANNEL = src_channel, .RANGE_GATE = range_gate}
     };
-
 	axi_write(source_un.raw, CSR_OUTPUT_SOURCE_ADDR);
 }
 

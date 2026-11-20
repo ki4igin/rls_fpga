@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 int dma_channel::init(const ch_config & cfg) {
-	printf("Init started for devnode %s\n", cfg.devnode.c_str());
+	// printf("Init started for devnode %s\n", cfg.devnode.c_str());
 	ch.buf_count = cfg.buf_count;
 	ch.buf_size  = cfg.buf_size;
 	config       = cfg;
@@ -30,7 +30,7 @@ int dma_channel::init(const ch_config & cfg) {
 		ch.buf_ptr->states[id].length = ch.buf_size;
 	}
 
-	printf("Init complete for devnode %s\n", config.devnode.c_str());
+	// printf("Init complete for devnode %s\n", config.devnode.c_str());
 	return 0;
 }
 
