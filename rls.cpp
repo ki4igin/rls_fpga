@@ -12,13 +12,13 @@ uint32_t get_rx_words_per_buf(uint32_t test_point, uint32_t u220_hdr_on) {
 	case TP_CUT:
 	case TP_FAPCH:
 	case TP_LOU: return (164 + HDR_SIZE) * N_PACKS_IN_TX_BUF;
-	case TP_MTI:
 	case TP_SF: return (141 + HDR_SIZE) * N_PACKS_IN_TX_BUF;
 	case TP_MAX:
 	case TP_RANK:
 	case TP_APU: return 141 + HDR_SIZE;
 	case TP_DDR:
 	case TP_FFT:
+	case TP_MTI:
 	case TP_WEIGHT_OUT: return 512 + HDR_SIZE;
 	case TP_FIND: return 141 * 5 + HDR_SIZE;
 	case TP_FAPCH_COEFFS: return (8 + HDR_SIZE) * N_PACKS_IN_TX_BUF;
