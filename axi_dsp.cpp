@@ -550,6 +550,5 @@ void axi_dsp_kill() {
 }
 
 void axi_dsp_apply() {
-	uint32_t prev_apply = (!axi_dsp_get_apply()) & 0x01;
-	axi_write(prev_apply, CSR_APPLY_ADDR);
+	axi_write(1, CSR_APPLY_ADDR);
 }
