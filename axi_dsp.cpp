@@ -117,7 +117,7 @@ void axi_dsp_configure() {
 	printf("\nAXU DSP Version: %u.%u\n\n", ip_ver.MAJ_VER, ip_ver.MIN_VER);
 
 	axi_dsp_kill();
-	axi_dsp_set_motion_selector(0, 0, 0);
+	axi_dsp_set_motion_selector(0, 0, 1);
 
 	cmplx_f64 manual_comp       = {.real = 1, .imag = 0};
 
