@@ -86,6 +86,7 @@ void axi_dsp_set_compensation_ref(uint32_t ref);
 void axi_dsp_set_channel_mask(uint32_t channel_mask, uint32_t malfunction_mask);
 void axi_dsp_set_expect_u220_del(uint32_t expect_del);
 void axi_dsp_set_frequency_selection(uint32_t mask, uint32_t reg_index);
+void axi_dsp_set_frequency_selection_all(const uint32_t masks[16]);
 
 void axi_dsp_kill();
 void axi_dsp_apply();

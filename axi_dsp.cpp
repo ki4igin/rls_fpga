@@ -226,17 +226,8 @@ void axi_dsp_configure() {
 	axi_dsp_set_cfar_level(1);
 	axi_dsp_set_median_detector_coef(36);
 	axi_dsp_set_channel_mask(0xFF, 0x00);
+	axi_dsp_set_frequency_selection_all(rls::BASE_FREQUENCY_MASK);
 
-	for (uint32_t reg_index = 0; reg_index < 16; ++reg_index) {
-		uint32_t mask = 0;
-		for (uint32_t bit = 0; bit < 32; ++bit) {
-			const uint32_t k = reg_index * 32 + bit;
-			if ((k >= 3 && k <= 75) || (k >= 437 && k <= 509)) {
-				mask |= uint32_t{1} << bit;
-			}
-		}
-		axi_dsp_set_frequency_selection(mask, reg_index);
-	}
 	axi_dsp_apply();
 }
 
@@ -542,6 +533,12 @@ void axi_dsp_set_frequency_selection(uint32_t mask, uint32_t reg_index) {
 		return;
 	}
 	axi_write(mask, CSR_FREQUENCY_SELECTION_0_ADDR + reg_index * reg_stride);
+}
+
+void axi_dsp_set_frequency_selection_all(const uint32_t masks[16]) {
+	for (uint32_t i = 0; i < 16; ++i) {
+		axi_dsp_set_frequency_selection(masks[i], i);
+	}
 }
 
 void axi_dsp_kill() {

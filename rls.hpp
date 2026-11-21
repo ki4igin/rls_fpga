@@ -33,6 +33,27 @@ enum tp {
 	TP_SDR          = 99,
 };
 
+// Частотный диапазон: 3–75 и 437–509
+constexpr uint32_t BASE_FREQUENCY_MASK[16] = {
+	0xFFFFFFF8,
+	0xFFFFFFFF,
+	0x00000FFF,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0xFFE00000,
+	0xFFFFFFFF,
+	0x3FFFFFFF,
+};
+
+
 #pragma pack(push, 1)
 
 struct header {
