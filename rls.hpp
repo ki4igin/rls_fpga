@@ -33,6 +33,37 @@ enum tp {
 	TP_SDR          = 99,
 };
 
+constexpr bool kt_uses_rg(rls::tp tp) {
+	switch (tp) {
+	case rls::TP_DDR:
+	case rls::TP_FFT:
+	case rls::TP_MAX: {
+		return true;
+	}
+	default: {
+		return false;
+	}
+	}
+}
+
+constexpr bool kt_uses_channel(rls::tp tp) {
+	switch (tp) {
+	case rls::TP_BYPASS:
+	case rls::TP_CUT:
+	case rls::TP_FAPCH:
+	case rls::TP_LOU:
+	case rls::TP_SF:
+	case rls::TP_MTI:
+	case rls::TP_DDR:
+	case rls::TP_FFT: {
+		return true;
+	}
+	default: {
+		return false;
+	}
+	}
+}
+
 // Частотный диапазон: 3–75 и 437–509
 constexpr uint32_t BASE_FREQUENCY_MASK[16] = {
 	0xFFFFFFF8,
