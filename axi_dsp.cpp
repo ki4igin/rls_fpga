@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <complex>
 
 #define MANUAL_COMPENSATION_ORD    14
 #define ANGLE_ORD                  32
@@ -396,6 +397,11 @@ void axi_dsp_set_manual_compensation(cmplx_f64 manual_comp, uint32_t channel) {
 	uint32_t im = float_to_fix(manual_comp.imag, MANUAL_COMPENSATION_ORD);
 	axi_write(re, CSR_MANUAL_COMPENSATION_0_RE_ADDR + (2 * channel * 0x04));
 	axi_write(im, CSR_MANUAL_COMPENSATION_0_IM_ADDR + (2 * channel * 0x04));
+}
+
+void axi_dsp_set_manual_compensation(std::complex<int16_t> manual_comp, uint32_t channel) {
+	axi_write(manual_comp.real(), CSR_MANUAL_COMPENSATION_0_RE_ADDR + (2 * channel * 0x04));
+	axi_write(manual_comp.imag(), CSR_MANUAL_COMPENSATION_0_IM_ADDR + (2 * channel * 0x04));
 }
 
 void axi_dsp_set_diagram_0(cmplx_f64 diagram, uint32_t channel) {
