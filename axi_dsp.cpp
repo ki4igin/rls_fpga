@@ -223,7 +223,7 @@ void axi_dsp_configure() {
 	axi_dsp_set_compensation_mode(0);
 	axi_dsp_set_compensation_ref((uint32_t)1575);
 	axi_dsp_set_apu_rank(9, 15);
-	axi_dsp_set_cfar_level(1);
+	axi_dsp_set_cfar_level(0);
 	axi_dsp_set_median_detector_coef(36);
 	axi_dsp_set_channel_mask(0xFF, 0x00);
 	axi_dsp_set_frequency_selection_all(rls::BASE_FREQUENCY_MASK);
